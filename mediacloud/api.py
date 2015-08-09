@@ -325,13 +325,15 @@ class MediaCloud(object):
                     return url+"?"+urllib.urlencode(params)
                 r = requests.get(url, params=params, headers={ 'Accept': 'application/json'} )
             except Exception as e:
-                self._logger.error('Failed to GET url '+url+' because '+str(e))
+                self._logger.error('Failed to GET url '+url+' because '+repr(e))
                 raise e
         elif http_method is 'PUT':
             try:
+                if return_url_only:
+                    raise ValueError('Not allowed to use return_url_only with a PUT request!')
                 r = requests.put( url, params=params, headers={ 'Accept': 'application/json'} )
             except Exception as e:
-                self._logger.error('Failed to PUT url '+url+' because '+str(e))
+                self._logger.error('Failed to PUT url '+url+' because '+repr(e))
                 raise e
         else:
             raise ValueError('Error - unsupported HTTP method %s' % http_method)
