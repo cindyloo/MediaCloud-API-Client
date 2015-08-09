@@ -3,6 +3,7 @@ from collections import namedtuple
 import xml.etree.ElementTree, requests
 import mediacloud, mediacloud.error
 import datetime
+import urllib
 
 class MediaCloud(object):
     '''
@@ -295,11 +296,13 @@ class MediaCloud(object):
             args['end_date'] = end_date
         return self._queryForJson(self.V2_API_URL+'controversy_dump_time_slices/list',args)    
 
-    def _queryForJson(self, url, params={}, http_method='GET'):
+    def _queryForJson(self, url, params={}, http_method='GET', return_url_only=False):
         '''
         Helper that returns queries to the API as real objects
         '''
-        response = self._query(url, params, http_method)
+        response = self._query(url, params, http_method, return_url_only)
+        if return_url_only:
+            return response # which is just the url
         # print response.content
         response_json = response.json()
         # print json.dumps(response_json,indent=2)
@@ -308,7 +311,7 @@ class MediaCloud(object):
             raise mediacloud.error.MCException(response_json['error'], requests.codes.ok)
         return response_json
 
-    def _query(self, url, params={}, http_method='GET'):
+    def _query(self, url, params={}, http_method='GET', return_url_only=False):
         self._logger.debug("query "+http_method+" to "+url+" with "+str(params))
         if not isinstance(params, dict):
             raise ValueError('Queries must include a dict of parameters')
@@ -318,6 +321,8 @@ class MediaCloud(object):
             if self._all_fields:
                 params['all_fields'] = 1
             try:
+                if return_url_only:
+                    return url+"?"+urllib.urlencode(params)
                 r = requests.get(url, params=params, headers={ 'Accept': 'application/json'} )
             except Exception as e:
                 self._logger.error('Failed to GET url '+url+' because '+str(e))
@@ -467,7 +472,7 @@ class AdminMediaCloud(MediaCloud):
             params['description'] = description
         return self._queryForJson( (self.V2_API_URL+'tag_sets/update/%d') % tag_sets_id, params, 'PUT')
 
-    def storyBitlyClicks(self, start_timestamp, end_timestamp, url=None, stories_id=None):
+    def storyBitlyClicks(self, start_timestamp, end_timestamp, url=None, stories_id=None, return_url_only=False):
         # Throws a 404 if the url is not in bitly, a 429 if we exceeded the api limit, or a 500 if there is some other error
         params = {'start_timestamp': start_timestamp,'end_timestamp': end_timestamp}
         if(url is not None):
@@ -476,5 +481,5 @@ class AdminMediaCloud(MediaCloud):
             params['stories_id'] = stories_id
         else:
             raise ValueError('To call bitlyStats you must include EITHER a url or stories_id argument')
-        return self._queryForJson(self.V2_API_URL+'stories/fetch_bitly_clicks', params)
+        return self._queryForJson(self.V2_API_URL+'stories/fetch_bitly_clicks', params, return_url_only=return_url_only)
 

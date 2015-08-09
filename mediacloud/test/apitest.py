@@ -616,6 +616,13 @@ class AdminApiTaggingContentTest(AdminApiBaseTest):
 
 class AdminApiBitlyTest(AdminApiBaseTest):
 
+    def testGetUrlOnly(self):
+        test_stories_id = 363513191
+        start_ts = 1433160000
+        end_ts = 1437998400
+        query_url = self._mc.storyBitlyClicks(start_ts, end_ts, stories_id=test_stories_id, return_url_only=True)
+        self.assertEqual(query_url, "https://api.mediacloud.org/api/v2/stories/fetch_bitly_clicks?start_timestamp=1433160000&stories_id=363513191&key="+self._config.get('api','key')+"&end_timestamp=1437998400")
+
     def testUrlNotInBitly(self):
         url_not_in_bitly = "https://connectionlab.wordpress.com/2015/07/20/mosaic-pavers-for-school-gardens/"
         start_ts = 1433160000
