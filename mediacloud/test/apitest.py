@@ -1,5 +1,6 @@
 import unittest, ConfigParser, json, datetime, logging
 import mediacloud.api
+import mediacloud.error
 
 class ApiBaseTest(unittest.TestCase):
 
@@ -612,3 +613,35 @@ class AdminApiTaggingContentTest(AdminApiBaseTest):
             if s['story_sentences_id'] in sentence_ids:
                 self.assertTrue(test_tag_id1 in s['tags'])
                 self.assertFalse(test_tag_id2 in s['tags'])
+
+class AdminApiBitlyTest(AdminApiBaseTest):
+
+    def testUrlNotInBitly(self):
+        url_not_in_bitly = "https://connectionlab.wordpress.com/2015/07/20/mosaic-pavers-for-school-gardens/"
+        start_ts = 1433160000
+        end_ts = 1437998400
+        try:
+            results = self._mc.storyBitlyClicks(start_ts, end_ts, url=url_not_in_bitly)
+            self.assertTrue(False,"this should have thrown a 404 exception!")
+        except mediacloud.error.MCException as mce:
+            self.assertEqual(mce.status_code,404)
+
+    def testByUrl(self):
+        test_story_url = "https://governor.ks.gov/media-room/executive-orders/2015/07/07/executive-order-15-05"
+        start_ts = 1433160000
+        end_ts = 1437998400
+        results = self._mc.storyBitlyClicks(start_ts, end_ts, url=test_story_url)
+        self.assertTrue('total_click_count' in results)
+        self.assertTrue('bitly_clicks' in results)
+        self.assertEqual(results['url'],test_story_url)
+        self.assertEqual(results['total_click_count'],169)
+
+    def testByStoriesId(self):
+        test_stories_id = 363513191
+        start_ts = 1433160000
+        end_ts = 1437998400
+        results = self._mc.storyBitlyClicks(start_ts, end_ts, stories_id=test_stories_id)
+        self.assertTrue('total_click_count' in results)
+        self.assertTrue('bitly_clicks' in results)
+        self.assertEqual(results['stories_id'],test_stories_id)
+        self.assertEqual(results['total_click_count'],169)
