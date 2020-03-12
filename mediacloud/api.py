@@ -633,8 +633,8 @@ class MediaCloud(object):
         params['media_ids'] = media_ids
         params['media_tags_ids'] = media_tags_ids
         _validate_params(params, valid_optional_params, kwargs)
-        if (len(media_ids) == 0) and (len(media_tags_ids) == 0):
-            raise ValueError('You have to specify media_ids or media_tags_ids')
+        #if (len(media_ids) == 0) and (len(media_tags_ids) == 0):
+        #    raise ValueError('You have to specify media_ids or media_tags_ids')
         return self._queryForJson(self.V2_API_URL+'topics/create', params, 'POST')
 
     def topicReset(self, topics_id):
